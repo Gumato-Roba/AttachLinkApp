@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+<div class="row">
+    <div class="col-12">
+
+        {% if hasAccepted %}
+            <!-- Show Projects Page -->
+            {% include "student/projects.html" %}
+        {% else %}
+            <!-- Stats Cards -->
+            <div class="row mb-4">
+                <div class="col-md-4 mb-3">
+                    <div class="card text-center h-100">
+                        <div class="card-header bg-primary text-white">
+                            <i class="fas fa-briefcase fa-2x"></i>
+                        </div>
+                        <div class="card-body">
+                            <h3 class="card-title">{{ availableCount }}</h3>
+                            <p class="card-text">Available Jobs</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card text-center h-100">
+                        <div class="card-header bg-success text-white">
+                            <i class="fas fa-file-alt fa-2x"></i>
+                        </div>
+                        <div class="card-body">
+                            <h3 class="card-title">{{ appliedCount }}</h3>
+                            <p class="card-text">My Applications</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card text-center h-100">
+                        <div class="card-header bg-info text-white">
+                            <i class="fas fa-clock fa-2x"></i>
+                        </div>
+                        <div class="card-body">
+                            <h3 class="card-title">{{ pendingCount }}</h3>
+                            <p class="card-text">Pending</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Available Jobs Section -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-briefcase me-2"></i>Available Jobs</h5>
+                    <a href="{% url 'jobList' %}" class="btn btn-sm btn-light">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if availableJobs %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Job Title</th>
+                                    <th>Type</th>
+                                    <th>Field</th>
+                                    <th>Location</th>
+                                    <th>Deadline</th>
+                                    <th>Actions</th>
+
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for job in availableJobs %}
+                                <tr>
+                                    <td>{{ job.title }}</td>
+                                    <td>{{ job.get_type_display }}</td>
+                                    <td>{{ job.get_major_display }}</td>
+                                    <td>{{ job.location }}</td>
+                                    <td>{{ job.deadline|date:"M d, Y" }}</td>
+                                    <td>
+                                        <a href="{% url 'jobDetail' job.id %}" class="btn btn-sm btn-outline-primary me-1">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+
+                                        {% if job.already_applied %}
+                                            <button class="btn btn-sm btn-secondary" disabled>
+                                                <i class="fas fa-check"></i> Already Applied
+                                            </button>
+                                        {% elif has_complete_resume %}
+                                            <a href="{% url 'applyToJob' job.id %}" class="btn btn-sm btn-success">
+                                                <i class="fas fa-paper-plane"></i> Apply
+                                            </a>
+                                            
+                                <!-- Preview Resume Modal -->
+                                <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#resumeModal-{{ job.id }}">
+                                    Preview Resume
+                                </button>
+                                <div class="modal fade" id="resumeModal-{{ job.id }}" tabindex="-1">
+                                    <div class="modal-dialog modal-lg">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Your Resume</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p><strong>Name:</strong> {{ resume.fullName }}</p>
+                                                <p><strong>Email:</strong> {{ resume.email }}</p>
+                                                <p><strong>Phone:</strong> {{ resume.phone }}</p>
+                                                <p><strong>Location:</strong> {{ resume.location }}</p>
+                                                <p><strong>Summary:</strong> {{ resume.summary }}</p>
+                                                <p><strong>Education:</strong> {{ resume.education }}</p>
+                                                <p><strong>Experience:</strong> {{ resume.experience }}</p>
+                                                <p><strong>Skills:</strong> {{ resume.skills }}</p>
+                                                <p><strong>Hobbies:</strong> {{ resume.hobbies }}</p>
+                                                <hr>
+                                                <a href="{% url 'resumeForm' %}" class="btn btn-warning">Edit Resume</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+  
+                                        {% else %}
+                                            <a href="{% url 'resumeForm' %}" class="btn btn-sm btn-warning">
+                                                <i class="fas fa-file-alt"></i> Complete Resume
+                                            </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>No available jobs at the moment.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- My Applications Section -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-file-alt me-2"></i>My Applications</h5>
+                </div>
+                <div class="card-body">
+                    {% if myApps %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Job Title</th>
+                                    <th>Company</th>
+                                    <th>Applied On</th>
+                                    <th>Status</th>
+                                    <th>Comments</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for app in myApps %}
+                                <tr>
+                                    <td>{{ app.job.title }}</td>
+                                    <td>{{ app.job.company.companyName }}</td>
+                                    <td>{{ app.appliedAt|date:"M d, Y" }}</td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if app.status == 'accepted' %}bg-success
+                                            {% elif app.status == 'rejected' %}bg-danger
+                                            {% elif app.status == 'reviewed' %}bg-info
+                                            {% else %}bg-warning text-dark{% endif %}">
+                                            {{ app.status|title }}
+                                        </span>
+                                    </td>
+                                    <td>{{ app.comments|default:"-" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>You haven't applied to any jobs yet.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

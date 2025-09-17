@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <h2>Job Applications</h2>
+    
+    <div class="card">
+        <div class="card-body">
+            {% if applications %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Applicant</th>
+                            <th>Job Position</th>
+                            <th>Applied Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for application in applications %}
+                        <tr>
+                            <td>{{ application.fullName }}</td>
+                            <td>{{ application.job.title }}</td>
+                            <td>{{ application.appliedAt }}</td>
+                            <td>
+                                <span class="badge bg-{% if application.status == 'accepted' %}success{% elif application.status == 'rejected' %}danger{% elif application.status == 'reviewed' %}info{% else %}warning{% endif %}">
+                                    {{ application.status }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{% url 'applicationDetail' application.id %}" class="btn btn-sm btn-primary">View Details</a>
+                                
+                    
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted">No applications received yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

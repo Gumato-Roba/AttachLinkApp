@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Student Settings{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>Account Settings</h2>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label>Email</label>
+        {{ user_form.email }}
+      </div>
+
+      <div class="col-md-6">
+        <label>Full name</label>
+        {{ student_form.fullName }}
+      </div>
+
+      <div class="col-md-6">
+        <label>Telephone</label>
+        {{ student_form.telephone }}
+      </div>
+
+      <div class="col-md-6">
+        <label>University</label>
+        {{ student_form.university }}
+      </div>
+
+      <div class="col-md-4">
+        <label>Date of birth</label>
+        {{ student_form.dateOfBirth }}
+      </div>
+
+      <div class="col-md-4">
+        <label>Major</label>
+        {{ student_form.major }}
+      </div>
+
+      <div class="col-md-4">
+        <label>Year</label>
+        {{ student_form.yearOfStudy }}
+      </div>
+
+
+      <div class="col-md-6">
+        <label>Profile picture</label><br>
+        {% if student_form.instance.profilePicture %}
+          <img src="{{ student_form.instance.profilePicture.url }}" class="img-thumbnail mb-2" style="max-height:120px;">
+        {% endif %}
+        {{ student_form.profilePicture }}
+      </div>
+
+      <div class="col-md-6">
+        <label>Student ID / National ID</label>
+        {{ student_form.studentId }}
+        {{ student_form.nationalId }}
+      </div>
+
+      <div class="col-12">
+        <button type="submit" class="btn btn-primary">Save changes</button>
+        <a href="{% url 'password_change' %}" class="btn btn-outline-warning ms-2">Change Password</a>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}

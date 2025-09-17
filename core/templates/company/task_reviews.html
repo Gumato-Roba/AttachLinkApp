@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h3><i class="fas fa-check-circle"></i> Task Submissions</h3>
+    <hr>
+
+    {% if submitted_tasks %}
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Task</th>
+                <th>Student</th>
+                <th>Progress</th>
+                <th>Comments</th>
+                <th>Proof</th>
+                <th>Status</th>
+                <th>Submitted On</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for update in submitted_tasks %}
+            <tr>
+                <td>{{ update.task.title }}</td>
+                <td>{{ update.student.fullName }}</td>
+                <td>{{ update.progressPercent }}%</td>
+                <td>{{ update.comments|default:"-" }}</td>
+                <td>
+                    {% if update.proof %}
+                        <a href="{{ update.proof.url }}" target="_blank" class="btn btn-sm btn-info">View Proof</a>
+                    {% else %}
+                        <span class="text-muted">No file</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <span class="badge 
+                        {% if update.status == 'approved' %}bg-success
+                        {% elif update.status == 'revision' %}bg-warning text-dark
+                        {% elif update.status == 'rejected' %}bg-danger
+                        {% else %}bg-secondary{% endif %}">
+                        {{ update.status|title }}
+                    </span>
+                </td>
+                <td>{{ update.created_at|date:"M d, Y H:i" }}</td>
+                <td>
+                    <!-- Review Button triggers modal -->
+                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#reviewModal{{ update.id }}">
+                        Review
+                    </button>
+                </td>
+            </tr>
+
+            <!-- Review Modal -->
+            <div class="modal fade" id="reviewModal{{ update.id }}" tabindex="-1" aria-labelledby="reviewModalLabel{{ update.id }}" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <form method="post" action="{% url 'reviewTaskUpdate' update.id %}">
+                            {% csrf_token %}
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="reviewModalLabel{{ update.id }}">Review Task - {{ update.task.title }}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <!-- Status -->
+                                <div class="mb-3">
+                                    <label>Status</label>
+                                    <select name="status" class="form-select">
+                                        <option value="approved" {% if update.status == 'approved' %}selected{% endif %}>Approve ✅</option>
+                                        <option value="revision" {% if update.status == 'revision' %}selected{% endif %}>Needs Revision 🔁</option>
+                                        <option value="rejected" {% if update.status == 'rejected' %}selected{% endif %}>Reject ❌</option>
+                                    </select>
+                                </div>
+
+                                <!-- Progress % -->
+                                <div class="mb-3">
+                                    <label>Progress %</label>
+                                    <input type="number" name="progressPercent" class="form-control" min="0" max="100" value="{{ update.progressPercent|default:0 }}">
+                                </div>
+
+                                <!-- Comments / Feedback -->
+                                <div class="mb-3">
+                                    <label>Feedback</label>
+                                    <textarea name="comments" class="form-control" rows="3">{{ update.comments }}</textarea>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-primary">Submit Review</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <div class="alert alert-info">No submissions yet.</div>
+    {% endif %}
+</div>
+{% endblock %}

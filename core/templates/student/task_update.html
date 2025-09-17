@@ -1,0 +1,31 @@
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h3>Submit Update for: {{ task.title }}</h3>
+    <p><strong>Project:</strong> {{ task.project.title }}</p>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="mb-3">
+            {{ form.progressPercent.label_tag }}
+            {{ form.progressPercent }}
+        </div>
+        <div class="mb-3">
+            {{ form.comments.label_tag }}
+            {{ form.comments }}
+        </div>
+        {% if form.proof %}
+        <div class="mb-3">
+            {{ form.proof.label_tag }}
+            {{ form.proof }}
+        </div>
+        {% endif %}
+        <button type="submit" class="btn btn-primary">Submit</button>
+        <a href="{% url 'studentDashboard' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}
+

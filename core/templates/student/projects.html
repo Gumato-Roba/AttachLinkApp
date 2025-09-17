@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% load static %}
+{% load custom_tags %}
+{% load custom_filters %}
+{% load dict_extras %}  
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h5>Welcome, {{ student.fullName }}</h3>
+</div>
+<div class="container mt-4">
+  <h5><i class="fas fa-tasks me-2 color-blue"></i> My Projects</h3>
+  <hr>
+
+  {% if projects %}
+    {% for project in projects %}
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">{{ project.title }}</h5>
+        <span class="badge bg-light text-dark">{{ project.status|title }}</span>
+      </div>
+      <div class="card-body">
+        <p><strong>Description:</strong> {{ project.description }}</p>
+        <p><strong>Planned:</strong> {{ project.plannedStartDate }} → {{ project.plannedEndDate }}</p>
+        <p><strong>Actual:</strong> {{ project.actualStartDate|default:"-" }} → {{ project.actualEndDate|default:"-" }}</p>
+
+        <!-- Tasks Table -->
+        <h6 class="mt-3">Tasks</h6>
+        {% if project.task_set.all %}
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Task</th>
+                  <th>Status</th>
+                  <th>Progress</th>
+                  <th>Comments</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for task in project.task_set.all %}
+                  {% with student_updates|get_item:task.id as update %}
+                  <tr>
+                    <td>
+                      <strong>{{ task.title }}</strong><br>
+                      <small class="text-muted">Due: {{ task.dueDate|default:"No deadline" }}</small>
+                    </td>
+                    <td>
+                      {% if update %}
+                        <span class="badge 
+                          {% if update.status == 'approved' %}bg-success
+                          {% elif update.status == 'rejected' %}bg-danger
+                          {% elif update.status == 'submitted' %}bg-warning text-dark
+                          {% else %}bg-secondary{% endif %}">
+                          {{ update.status|title }}
+                        </span>
+                      {% else %}
+                        <span class="badge bg-secondary">Not submitted</span>
+                      {% endif %}
+                    </td>
+                    <td>{{ update.progressPercent|default:0 }}%</td>
+                    <td>{{ update.comments|default:"-" }}</td>
+                    <td>
+                      <button class="btn btn-sm btn-outline-primary"
+                              data-bs-toggle="modal"
+                              data-bs-target="#submitTaskModal{{ task.id }}">
+                        <i class="fas fa-upload me-1"></i> Submit
+                      </button>
+                    </td>
+                  </tr>
+
+                  <!-- Submit Task Modal -->
+                  <div class="modal fade" id="submitTaskModal{{ task.id }}" tabindex="-1"
+                       aria-labelledby="submitTaskModalLabel{{ task.id }}" aria-hidden="true">
+                    <div class="modal-dialog">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <h5 class="modal-title" id="submitTaskModalLabel{{ task.id }}">Submit Task: {{ task.title }}</h5>
+                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form method="post" action="{% url 'submitTaskUpdate' task.id %}" enctype="multipart/form-data">
+                          {% csrf_token %}
+                          <div class="modal-body">
+                            {% with task_form=task_forms|dict_get:task.id %}
+                              {% if task_form %}
+                                <div class="mb-3">
+                                  {{ task_form.comments.label_tag }}
+                                  {{ task_form.comments }}
+                                </div>
+                                <div class="mb-3">
+                                  {{ task_form.proof.label_tag }}
+                                  {{ task_form.proof }}
+                                </div>
+                              {% else %}
+                                <p class="text-muted">No form available for this task.</p>
+                              {% endif %}
+                            {% endwith %}
+                          </div>
+                          <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                  {% endwith %}
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p class="text-muted">No tasks assigned yet.</p>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="alert alert-info">
+      <i class="fas fa-info-circle me-2"></i>No projects assigned yet.
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

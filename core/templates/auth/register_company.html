@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% load static %}
+{% load form_tags %}
+{% block title %}Company Sign Up{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-lg-8 col-xl-6">
+
+        <!-- Card -->
+        <div class="card shadow-sm p-4">
+
+            <!-- Heading -->
+            <h4 class="text-center mb-4">Create Company Account</h4>
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+
+                <!-- Company Name -->
+                <div class="mb-3">
+                    <label>Company Name</label>
+                    {{ form.companyName|add_class:"form-control" }}
+                </div>
+
+                <!-- Contact Person & Phone -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label>Contact Person</label>
+                        {{ form.contactPerson|add_class:"form-control" }}
+                    </div>
+                    <div class="col-md-6">
+                        <label>Phone</label>
+                        {{ form.contactNumber|add_class:"form-control" }}
+                    </div>
+                </div>
+
+                <!-- Company Email & Website -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label>Company Email</label>
+                        {{ form.companyEmail|add_class:"form-control" }}
+                    </div>
+                    <div class="col-md-6">
+                        <label>Website</label>
+                        {{ form.website|add_class:"form-control" }}
+                    </div>
+                </div>
+
+                <!-- Industry & Location -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label>Industry</label>
+                        {{ form.industry|add_class:"form-control" }}
+                    </div>
+                    <div class="col-md-6">
+                        <label>Location</label>
+                        {{ form.location|add_class:"form-control" }}
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="mb-3">
+                    <label>Description</label>
+                    {{ form.description|add_class:"form-control" }}
+                </div>
+
+                <hr>
+
+                <!-- Account Email & Passwords -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label>Account Email</label>
+                        {{ form.email|add_class:"form-control" }}
+                    </div>
+                    <div class="col-md-3">
+                        <label>Password</label>
+                        {{ form.password1|add_class:"form-control" }}
+                    </div>
+                    <div class="col-md-3">
+                        <label>Confirm</label>
+                        {{ form.password2|add_class:"form-control" }}
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="text-center">
+                    <button type="submit" class="btn btn-custom w-50">Create Company</button>
+                </div>
+
+            </form>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}Jobs{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">Available Jobs</h4>
+    {% if user.is_authenticated and user.role == "company" %}
+        <a class="btn btn-primary btn-sm" href="{% url 'jobCreate' %}">Post a Job</a>
+    {% endif %}
+</div>
+
+<!-- Search Form -->
+<div class="card mb-4 p-3">
+    <form method="GET" action="{% url 'jobList' %}" class="row g-3 align-items-end">
+        <div class="col-md-5">
+            <label for="searchQuery" class="form-label">Search</label>
+            <input type="text" class="form-control" id="searchQuery" name="q" 
+                   placeholder="Job title, company, or keywords" value="{{ request.GET.q }}">
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">Search</button>
+        </div>
+    </form>
+</div>
+
+<!-- Jobs Table -->
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-striped mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Job Title</th>
+                        <th>Company</th>
+                        <th>Location</th>
+                        <th>Major</th>
+                        <th>Type</th>
+                        <th>Deadline</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for j in jobs %}
+                    <tr>
+                        <td><strong>{{ j.title }}</strong></td>
+                        <td>{{ j.company.companyName }}</td>
+                        <td>{{ j.location }}</td>
+                        <td>{{ j.get_major_display }}</td>
+                        <td><span class="badge bg-secondary">{{ j.get_type_display }}</span></td>
+                        <td>
+                            {% if j.deadline < now %}
+                                <span class="text-danger">{{ j.deadline|date:"M d, Y" }}</span>
+                            {% else %}
+                                {{ j.deadline|date:"M d, Y" }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.is_authenticated and user.role == "student" %}
+                                {% if j.already_applied %}
+                                    <button class="btn btn-sm btn-secondary" disabled>Already Applied</button>
+                                {% elif resume and resume.is_complete %}
+                                    <a class="btn btn-success btn-sm" href="{% url 'applyToJob' j.id %}">Apply</a>
+
+                                    <!-- Preview Resume Modal -->
+                                    <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#resumeModal-{{ j.id }}">
+                                        Preview Resume
+                                    </button>
+                                    <div class="modal fade" id="resumeModal-{{ j.id }}" tabindex="-1">
+                                        <div class="modal-dialog modal-lg">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Your Resume</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p><strong>Name:</strong> {{ resume.fullName }}</p>
+                                                    <p><strong>Email:</strong> {{ resume.email }}</p>
+                                                    <p><strong>Phone:</strong> {{ resume.phone }}</p>
+                                                    <p><strong>Location:</strong> {{ resume.location }}</p>
+                                                    <p><strong>Summary:</strong> {{ resume.summary }}</p>
+                                                    <p><strong>Education:</strong> {{ resume.education }}</p>
+                                                    <p><strong>Experience:</strong> {{ resume.experience }}</p>
+                                                    <p><strong>Skills:</strong> {{ resume.skills }}</p>
+                                                    <p><strong>Hobbies:</strong> {{ resume.hobbies }}</p>
+                                                    <hr>
+                                                    <a href="{% url 'resumeForm' %}" class="btn btn-warning">Edit Resume</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <a href="{% url 'resumeForm' %}" class="btn btn-warning btn-sm">Complete Resume First</a>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">Login as Student to Apply</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-4">No jobs found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

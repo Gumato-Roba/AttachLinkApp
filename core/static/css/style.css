@@ -1,0 +1,131 @@
+
+/* -----STUDENT REGISTER CSS----- */
+
+/* Softer Blue for buttons and navbar */
+.btn-custom {
+    background-color: #4a90e2;
+    color: white;
+    border-radius: 5px;
+    padding: 10px 20px;
+}
+
+.btn-custom:hover {
+    background-color: #357ABD;
+    color: white;
+}
+
+/* Card Shadow and Rounded Corners */
+.card {
+    border-radius: 10px;
+    background-color: white;
+}
+
+/* Body Background */
+body {
+    background-color: #f5f5f5;
+}
+
+/* Form Control Rounded */
+.form-control {
+    border-radius: 5px;
+}
+
+/* ---------COMPANY REGISTER CSS------------ */
+/* Soft blue button for consistency */
+.btn-custom {
+    background-color: #4a90e2;
+    color: white;
+    border-radius: 5px;
+    padding: 10px 20px;
+}
+
+.btn-custom:hover {
+    background-color: #357ABD;
+    color: white;
+}
+
+/* Card shadow and rounded corners */
+.card {
+    border-radius: 10px;
+    background-color: white;
+}
+
+/* Form control rounded */
+.form-control {
+    border-radius: 5px;
+}
+
+/* -------LOGIN CSS --------*/
+/* Soft blue button for consistency */
+.btn-custom {
+    background-color: #4a90e2;
+    color: white;
+    border-radius: 5px;
+    padding: 10px 20px;
+}
+
+.btn-custom:hover {
+    background-color: #357ABD;
+    color: white;
+}
+
+/* Card shadow and rounded corners */
+.card {
+    border-radius: 10px;
+    background-color: white;
+}
+
+/* Form control rounded */
+.form-control {
+    border-radius: 5px;
+}
+
+/* ---- Dashboard CSS --- */
+#sidebar {
+    height: 100vh;
+    position: sticky;
+    top: 0;
+}
+
+#sidebar .nav-link {
+    color: #333;
+    border-radius: 5px;
+}
+
+#sidebar .nav-link.active {
+    background-color: #4a90e2;
+    color: white;
+}
+
+#sidebar .nav-link:hover {
+    background-color: #357ABD;
+    color: white;
+}
+
+.btn-custom {
+    background-color: #4a90e2;
+    color: white;
+    border-radius: 5px;
+}
+
+.btn-custom:hover {
+    background-color: #357ABD;
+    color: white;
+}
+
+.card {
+    border-radius: 10px;
+    background-color: white;
+}
+
+
+.apply-btn {
+    background-color: #4a90e2;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+}
+.apply-btn:hover {
+    background-color: #357ab8; /* darker blue on hover */
+}

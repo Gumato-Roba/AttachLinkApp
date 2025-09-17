@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Login · Attachlink{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6 col-lg-5">
+
+        <!-- Card -->
+        <div class="card shadow-sm p-4">
+
+            <!-- Heading -->
+            <h4 class="text-center mb-4">Login</h4>
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+                {{ form.non_field_errors }}
+
+                <!-- Email -->
+                <div class="mb-3">
+                    <label for="{{ form.username.id_for_label }}">Email</label>
+                    <input type="text" 
+                           name="{{ form.username.name }}" 
+                           id="{{ form.username.id_for_label }}" 
+                           class="form-control" 
+                           {% if form.username.value %}value="{{ form.username.value }}"{% endif %}
+                           {% if form.username.field.required %}required{% endif %}>
+                    {% if form.username.errors %}
+                        <div class="text-danger mt-1">
+                            {% for error in form.username.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Password -->
+                <div class="mb-3">
+                    <label for="{{ form.password.id_for_label }}">Password</label>
+                    <input type="password" 
+                           name="{{ form.password.name }}" 
+                           id="{{ form.password.id_for_label }}" 
+                           class="form-control" 
+                           {% if form.password.field.required %}required{% endif %}>
+                    {% if form.password.errors %}
+                        <div class="text-danger mt-1">
+                            {% for error in form.password.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+        
+                <!-- Submit Button -->
+                <div class="text-center">
+                    <button type="submit" class="btn btn-custom w-50">Login</button>
+                </div>
+
+                <!-- Forgot Password Link -->
+                <div class="text-center mt-3">
+                    <a href="#" data-bs-toggle="modal" data-bs-target="#forgotPasswordModal">
+                        Forgot Password?
+                    </a>
+                </div>
+            </form>
+
+            <hr>
+
+        </div>
+
+    </div>
+</div>
+
+<!-- Forgot Password Modal -->
+<div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-labelledby="forgotPasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="forgotPasswordModalLabel">Reset Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{% url 'password_reset' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <p class="mb-3">Enter your email address and we'll send you a link to reset your password.</p>
+                    <input type="email" name="email" class="form-control" placeholder="Enter your email" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-custom">Send Reset Link</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

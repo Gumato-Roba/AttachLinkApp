@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h3>Submit Proof for {{ task.title }}</h3>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="proof" class="form-label">Upload File / Proof</label>
+            <input type="file" name="proof" id="proof" class="form-control">
+        </div>
+        <div class="mb-3">
+            <label for="proof_text" class="form-label">Or Write Proof</label>
+            <textarea name="proof_text" id="proof_text" class="form-control"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit Proof</button>
+    </form>
+</div>
+{% endblock %}

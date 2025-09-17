@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: Arial, sans-serif; background-color: #f8f9fa; padding: 20px; }
+    .container { background: #fff; max-width: 600px; margin: 20px auto; padding: 20px; border-radius: 8px; border: 1px solid #ddd; }
+    .btn { display: inline-block; background-color: #4a90e2; color: #fff !important; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Hello {{ student.fullName }},</h2>
+    <p>Welcome! Please click the button below to activate your account:</p>
+    <p style="text-align: center;">
+      <a href="{{ activation_link }}" class="btn">Activate Account</a>
+    </p>
+    <p>If you didn’t create an account, you can ignore this email.</p>
+    <p>Thanks,<br>Attachlink Team</p>
+  </div>
+</body>
+</html>

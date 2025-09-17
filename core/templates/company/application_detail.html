@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold"><i class="bi bi-person-badge"></i> Application Review</h2>
+    <a href="{% url 'companyApplications' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i> Back
+    </a>
+  </div>
+
+  <div class="row">
+    <!-- Left: Resume -->
+    <div class="col-md-8">
+      <div class="card mb-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+          <span>Resume</span>
+          {% if resume %}
+          <a href="{% url 'downloadResume' application.student.id %}" class="btn btn-sm btn-success">
+             <i class="bi bi-download"></i> Download Resume
+          </a>
+          {% endif %}
+        </div>
+        <div class="card-body">
+          {% if resume %}
+            {% if resume.summary %}<h5>Summary</h5><p>{{ resume.summary }}</p>{% endif %}
+            {% if resume.education %}<h5>Education</h5><p>{{ resume.education|linebreaks }}</p>{% endif %}
+            {% if resume.experience %}<h5>Experience</h5><p>{{ resume.experience|linebreaks }}</p>{% endif %}
+            {% if resume.skills %}<h5>Skills</h5><p>{{ resume.skills|linebreaks }}</p>{% endif %}
+            {% if resume.hobbies %}<h5>Hobbies</h5><p>{{ resume.hobbies|linebreaks }}</p>{% endif %}
+          {% else %}
+            <p class="text-muted">This student has not completed a resume yet.</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Accept / Reject Application -->
+      {% if application.status not in "accepted rejected" %}
+      <div class="card mb-4">
+        <div class="card-header bg-warning text-dark">Application Actions</div>
+        <div class="card-body">
+          <form method="POST">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label for="comments" class="form-label">Comments (optional)</label>
+              <textarea name="comments" id="comments" class="form-control" rows="2">{{ application.comments }}</textarea>
+            </div>
+            <button type="submit" name="status" value="accepted" class="btn btn-success me-2">
+              Accept
+            </button>
+            <button type="submit" name="status" value="rejected" class="btn btn-danger">
+              Reject
+            </button>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Right: Student Info -->
+    <div class="col-md-4">
+      <div class="card mb-4">
+        <div class="card-header bg-primary text-white">Student</div>
+        <div class="card-body text-center">
+          {% if student.profilePicture %}
+            <img src="{{ student.profilePicture.url }}" class="rounded-circle mb-3" style="width:120px;height:120px;">
+          {% endif %}
+          <h5>{{ student.fullName }}</h5>
+          <p><i class="bi bi-envelope"></i> {{ student.user.email }}</p>
+          <p><i class="bi bi-telephone"></i> {{ student.telephone }}</p>
+          <p><i class="bi bi-building"></i> {{ student.university }}</p>
+          <p><i class="bi bi-mortarboard"></i> {{ student.get_major_display }}</p>
+          <p><i class="bi bi-calendar"></i> Year {{ student.yearOfStudy }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

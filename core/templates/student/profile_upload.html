@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h3>Upload Profile Picture</h3>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button class="btn btn-primary">Save</button>
+        <a href="{% url 'studentSettings' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

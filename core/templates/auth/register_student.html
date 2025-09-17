@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% load static %}
+{% load form_tags %}
+{% block title %}Student Sign Up{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row justify-content-center mt-5">
+    <div class="col-lg-8 col-xl-6">
+
+      <!-- Card -->
+      <div class="card shadow-sm p-4">
+
+        <h4 class="text-center mb-4">Create Student Account</h4>
+
+        <!-- Non-field errors -->
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger">
+            {% for error in form.non_field_errors %}
+              <div>{{ error }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+        {% if messages %}
+  <div class="container mt-2">
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+
+        <form method="post" enctype="multipart/form-data" novalidate>
+          {% csrf_token %}
+
+          <!-- Full Name & Telephone -->
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label>Full Name</label>
+              {{ form.fullName|add_class:"form-control" }}
+              {% if form.fullName.errors %}
+                <div class="text-danger">{{ form.fullName.errors|striptags }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <label>Telephone</label>
+              {{ form.telephone|add_class:"form-control" }}
+              {% if form.telephone.errors %}
+                <div class="text-danger">{{ form.telephone.errors|striptags }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Major & University -->
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label>Major</label>
+              {{ form.major|add_class:"form-control" }}
+              {% if form.major.errors %}
+                <div class="text-danger">{{ form.major.errors|striptags }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <label>University</label>
+              {{ form.university|add_class:"form-control" }}
+              {% if form.university.errors %}
+                <div class="text-danger">{{ form.university.errors|striptags }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- DOB, Year of Study, Student ID -->
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <label>Date of Birth</label>
+              {{ form.dateOfBirth|add_class:"form-control" }}
+              {% if form.dateOfBirth.errors %}
+                <div class="text-danger">{{ form.dateOfBirth.errors|striptags }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-4">
+              <label>Year of Study</label>
+              {{ form.yearOfStudy|add_class:"form-control" }}
+              {% if form.yearOfStudy.errors %}
+                <div class="text-danger">{{ form.yearOfStudy.errors|striptags }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-4">
+              <label>Student ID #</label>
+              {{ form.studentId|add_class:"form-control" }}
+              {% if form.studentId.errors %}
+                <div class="text-danger">{{ form.studentId.errors|striptags }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- National ID & Email -->
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label>National ID</label>
+              {{ form.nationalId|add_class:"form-control" }}
+              {% if form.nationalId.errors %}
+                <div class="text-danger">{{ form.nationalId.errors|striptags }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <label>Account Email</label>
+              {{ form.email|add_class:"form-control" }}
+              {% if form.email.errors %}
+                <div class="text-danger">{{ form.email.errors|striptags }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Passwords -->
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <label>Password</label>
+              {{ form.password1|add_class:"form-control" }}
+              {% if form.password1.errors %}
+                <div class="text-danger">{{ form.password1.errors|striptags }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <label>Confirm</label>
+              {{ form.password2|add_class:"form-control" }}
+              {% if form.password2.errors %}
+                <div class="text-danger">{{ form.password2.errors|striptags }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="text-center">
+            <button type="submit" class="btn text-white btn-custom w-50">Create Account</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% block title %}Post a Job{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card shadow-lg border-0">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0">
+            <i class="fas fa-plus-circle me-2"></i>Post New Job
+          </h4>
+        </div>
+        <div class="card-body p-4">
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+          
+          <form method="post" class="needs-validation" novalidate>
+            {% csrf_token %}
+            
+            <div class="row g-3">
+              <!-- Job Title -->
+              <div class="col-md-12">
+                <label class="form-label">Job Title*</label>
+                {{ form.title }}
+                {% if form.title.errors %}
+                  <div class="invalid-feedback d-block">
+                    {{ form.title.errors.as_text }}
+                  </div>
+                {% endif %}
+              </div>
+              
+              <!-- Job Type and Duration -->
+              <div class="col-md-6">
+                <label class="form-label">Job Type*</label>
+                {{ form.type }}
+                {% if form.type.errors %}
+                  <div class="invalid-feedback d-block">
+                    {{ form.type.errors.as_text }}
+                  </div>
+                {% endif %}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Duration*</label>
+                {{ form.duration }}
+                {% if form.duration.errors %}
+                  <div class="invalid-feedback d-block">
+                    {{ form.duration.errors.as_text }}
+                  </div>
+                {% endif %}
+              </div>
+              
+              <!-- Field and Location -->
+              <div class="col-md-6">
+                <label class="form-label">Major*</label>
+                {{ form.major }}
+                {% if form.major.errors %}
+                  <div class="invalid-feedback d-block">
+                    {{ form.major.errors.as_text }}
+                  </div>
+                {% endif %}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Location*</label>
+                {{ form.location }}
+                {% if form.location.errors %}
+                  <div class="invalid-feedback d-block">
+                    {{ form.location.errors.as_text }}
+                  </div>
+                {% endif %}
+              </div>
+              
+              <!-- Openings and Deadline -->
+              <div class="col-md-6">
+                <label class="form-label">Openings Available*</label>
+                {{ form.openingsAvailable }}
+                {% if form.openingsAvailable.errors %}
+                  <div class="invalid-feedback d-block">
+                    {{ form.openingsAvailable.errors.as_text }}
+                  </div>
+                {% endif %}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Application Deadline*</label>
+                {{ form.deadline }}
+                {% if form.deadline.errors %}
+                  <div class="invalid-feedback d-block">
+                    {{ form.deadline.errors.as_text }}
+                  </div>
+                {% endif %}
+              </div>
+              
+              <!-- Status -->
+              <div class="col-md-12">
+                <label class="form-label">Status*</label>
+                {{ form.status }}
+                {% if form.status.errors %}
+                  <div class="invalid-feedback d-block">
+                    {{ form.status.errors.as_text }}
+                  </div>
+                {% endif %}
+              </div>
+              
+              <!-- Description -->
+              <div class="col-12">
+                <label class="form-label">Job Description*</label>
+                {{ form.description }}
+                {% if form.description.errors %}
+                  <div class="invalid-feedback d-block">
+                    {{ form.description.errors.as_text }}
+                  </div>
+                {% endif %}
+                <small class="text-muted">Describe responsibilities, requirements, and benefits</small>
+              </div>
+              
+              <!-- Submit Button -->
+              <div class="col-12 mt-4">
+                <button type="submit" class="btn btn-primary px-4 py-2">
+                  <i class="fas fa-paper-plane me-2"></i>Publish Job
+                </button>
+                <a href="{% url 'companyDashboard' %}" class="btn btn-outline-secondary ms-2">
+                  Cancel
+                </a>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .form-control, .form-select {
+    height: 45px;
+    border-radius: 5px;
+  }
+  textarea.form-control {
+    min-height: 150px;
+  }
+  .card {
+    border-radius: 10px;
+  }
+  .card-header {
+    border-radius: 10px 10px 0 0 !important;
+  }
+  .btn-primary {
+    background-color: #4a90e2;
+    border: none;
+  }
+  .btn-primary:hover {
+    background-color: #3a7bc8;
+  }
+</style>
+{% endblock %}

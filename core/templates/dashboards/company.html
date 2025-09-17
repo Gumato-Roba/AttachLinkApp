@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <!-- Header Row with Button aligned to the right -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3>Welcome {{ company.companyName }}</h3>
+        <div>
+            <a href="{% url 'jobCreate' %}" class="btn btn-primary me-2">
+                <i class="fas fa-plus"></i> Post New Job
+            </a>
+            <a href="{% url 'companyProjects' %}" class="btn btn-success">
+                <i class="fas fa-tasks"></i> Manage Projects
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Cards Row -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card text-center h-100 stats-card">
+                <div class="card-header bg-primary text-white">
+                    <i class="fas fa-briefcase fa-2x"></i>
+                </div>
+                <div class="card-body">
+                    <h3 class="card-title">{{ totalJobs }}</h3>
+                    <p class="card-text">Total Jobs Posted</p>
+                </div>
+                <!-- <div class="card-footer bg-transparent">
+                    <a href="{% url 'jobCreate' %}" class="btn btn-sm btn-outline-primary">Post New Job</a>
+                </div> -->
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card text-center h-100 stats-card">
+                <div class="card-header bg-success text-white">
+                    <i class="fas fa-users fa-2x"></i>
+                </div>
+                <div class="card-body">
+                    <h3 class="card-title">{{ totalApplications }}</h3>
+                    <p class="card-text">Total Applications</p>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="{% url 'companyApplications' %}" class="btn btn-sm btn-outline-success">View Applications</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card text-center h-100 stats-card">
+                <div class="card-header bg-info text-white">
+                    <i class="fas fa-clock fa-2x"></i>
+                </div>
+                <div class="card-body">
+                    <h3 class="card-title">{{ pendingApplications }}</h3>
+                    <p class="card-text">Pending Reviews</p>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="{% url 'companyApplications' %}" class="btn btn-sm btn-outline-info">Review Applications</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- My Jobs Section -->
+    <div class="card mb-5">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="fas fa-briefcase me-2"></i>My Job Postings</h5>
+        </div>
+        <div class="card-body">
+            {% if myJobs %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Location</th>
+                                <th>Status</th>
+                                <th>Deadline</th>
+                                <th>Applications</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for job in myJobs %}
+                                <tr>
+                                    <td>{{ job.title }}</td>
+                                    <td>{{ job.location }}</td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if job.status == 'open' %}bg-success
+                                            {% elif job.status == 'closed' %}bg-secondary
+                                            {% else %}bg-warning{% endif %}">
+                                            {{ job.status|title }}
+                                        </span>
+                                    </td>
+                                    <td>{{ job.deadline|date:"Y-m-d" }}</td>
+                                    <td>
+                                        <span class="badge bg-primary">
+                                            {{ job.applicationsCount }} Applied
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'jobDetail' job.id %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info mb-0">
+                    <i class="fas fa-info-circle me-2"></i>You have not posted any jobs yet.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Applications Received Section -->
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="fas fa-users me-2"></i>Applications Received</h5>
+        </div>
+        <div class="card-body">
+            {% if applications %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Job Title</th>
+                                <th>Applicant Name</th>
+                                <th>Email</th>
+                                <th>Status</th>
+                                <th>Applied On</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for app in applications %}
+                            <tr>
+                                <td>{{ app.job.title }}</td>
+                                <td>{{ app.student.fullName }}</td>
+                                <td>{{ app.student.user.email }}</td>
+                                <td>
+                                    <span class="badge 
+                                        {% if app.status == 'accepted' %}bg-success
+                                        {% elif app.status == 'rejected' %}bg-danger
+                                        {% else %}bg-warning text-dark{% endif %}">
+                                        {{ app.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>{{ app.appliedAt|date:"M d, Y" }}</td>
+                                <td>
+                                    <a href="{% url 'applicationDetail' app.id %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info mb-0">
+                    <i class="fas fa-info-circle me-2"></i>No applications have been submitted to your jobs yet.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

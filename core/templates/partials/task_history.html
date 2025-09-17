@@ -1,0 +1,50 @@
+{% if task.taskupdate_set.all %}
+  <div class="mt-2">
+    <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#history-{{ task.id }}">
+      View History
+    </button>
+    <div class="collapse mt-2" id="history-{{ task.id }}">
+      <ul class="list-group">
+        {% for update in task.taskupdate_set.all %}
+          <li class="list-group-item">
+            <strong>Status:</strong> {{ update.status|title }}
+            <span class="text-muted">({{ update.submittedAt|date:"M d, Y H:i" }})</span>
+            <br>
+            {% if update.proof %}
+              <a href="{{ update.proof.url }}" target="_blank">📎 View Proof</a><br>
+            {% endif %}
+            {% if update.comments %}
+              <em>{{ update.comments }}</em><br>
+            {% endif %}
+            {% if update.reviewedAt %}
+              <small>Reviewed: {{ update.reviewedAt|date:"M d, Y H:i" }}</small>
+            {% endif %}
+
+            {% if request.user.role == "company" %}
+              <form method="POST" action="{% url 'reviewTaskUpdate' update.id %}" class="mt-2">
+                {% csrf_token %}
+                <div class="row g-2">
+                  <div class="col-md-4">
+                    <select name="status" class="form-select form-select-sm">
+                      <option value="approved">Approve</option>
+                      <option value="rejected">Reject</option>
+                      <option value="in-progress">Mark In-Progress</option>
+                      <option value="completed">Mark Completed</option>
+                      <option value="pending">Mark Pending</option>
+                    </select>
+                  </div>
+                  <div class="col-md-6">
+                    <input type="text" name="feedback" class="form-control form-control-sm" placeholder="Feedback (optional)">
+                  </div>
+                  <div class="col-md-2">
+                    <button type="submit" class="btn btn-sm btn-primary">Update</button>
+                  </div>
+                </div>
+              </form>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+{% endif %}

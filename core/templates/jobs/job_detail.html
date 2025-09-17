@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}{{ job.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="card shadow-sm">
+        <!-- Job Header -->
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">{{ job.title }}</h3>
+        </div>
+
+        <!-- Job Details -->
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <p><strong>Company:</strong> {{ job.company.companyName }}</p>
+                    <p><strong>Major:</strong> {{ job.get_major_display }}</p>
+                    <p><strong>Location:</strong> {{ job.location }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Job Type:</strong> {{ job.get_type_display }}</p>
+                    <p><strong>Duration:</strong> {{ job.duration }}</p>
+                    <p><strong>Deadline:</strong> {{ job.deadline|date:"M d, Y" }}</p>
+                </div>
+            </div>
+
+            <!-- Job Description -->
+            <h5 class="border-bottom pb-2">Job Description</h5>
+            <div class="mb-4">{{ job.description|linebreaks }}</div>
+
+         <!-- Buttons -->
+       <div class="d-flex justify-content-between">
+    {% if user.role == "student" %}
+        <!-- Back to Jobs -->
+        <a href="{% url 'studentDashboard' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i> Back to Jobs
+        </a>
+
+        <!-- Apply Logic -->
+    {% elif user.role == "company" %}
+        <!-- Back to company jobs -->
+        <a href="{% url 'companyDashboard' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i> Back to My Jobs
+        </a>
+    {% endif %}
+</div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

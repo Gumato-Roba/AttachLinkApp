@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3>Students List</h3>
+        <a href="{% url 'adminDashboard' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-primary">
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>University</th>
+                    <th>Major</th>
+                    <th>Year</th>
+                    <th>Resume</th>
+                    <th>StudentID</th>
+                    <th>NationalID</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                <tr>
+                    <td>{{ student.fullName }}</td>
+                    <td>{{ student.user.email }}</td>
+                    <td>{{ student.university }}</td>
+                    <td>{{ student.get_major_display }}</td>
+                    <td>{{ student.yearOfStudy }}</td>
+                    <td>
+                        {% if student.studentresume %}
+                        <a href="{% url 'downloadResume' student.id %}" class="btn btn-sm btn-primary">
+                            Download
+                        </a>
+                        {% else %}
+                        <span class="text-muted">No Resume</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ student.studentId }}</td>
+                    <td>{{ student.nationalId }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center text-muted">No students found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

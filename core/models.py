@@ -35,6 +35,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     ]
 
     email = models.EmailField(unique=True, db_column="email")
+    profilePicture = models.ImageField(upload_to="admin_profiles/", null=True, blank=True)
+    fullName = models.CharField(max_length=255, blank=True, null=True)
     role = models.CharField(max_length=20, null=True, blank=True, choices=ROLE_CHOICES, db_column="role")
     status = models.CharField(max_length=20, null=True, blank=True, choices=STATUS_CHOICES, default="active", db_column="status")
 

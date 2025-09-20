@@ -24,7 +24,9 @@ from django.template.loader import render_to_string
 
 from .forms import (
     LoginForm, StudentRegisterForm, CompanyRegisterForm,
-    JobForm, StudentResumeForm, TaskUpdateForm, TaskReviewForm,ProfilePictureForm,StudentProfileUpdateForm,StudentUpdateForm,UserUpdateForm,CompanyForm
+    JobForm, StudentResumeForm, TaskUpdateForm, TaskReviewForm,
+    ProfilePictureForm,StudentProfileUpdateForm,StudentUpdateForm,
+    UserUpdateForm,CompanyForm,AdminForm
 )
 from .models import (
     User, Student, Company, Job, Application,
@@ -196,10 +198,8 @@ def dashboardRedirect(request):
 @login_required
 def studentDashboard(request):
     student = get_object_or_404(Student, user=request.user)
-
     resume = StudentResume.objects.filter(student=student).first()
-    has_complete_resume = False
-
+    has_complete_resume = resume.is_complete if resume else False
     projects = Project.objects.filter(application__student=student).prefetch_related("task_set")
 
     student_updates = {}
@@ -209,7 +209,6 @@ def studentDashboard(request):
     
     # Attach form to each task
     task_forms = {} 
-
     for project in projects:
         for task in project.task_set.all():
             existing_update = TaskUpdate.objects.filter(
@@ -219,7 +218,8 @@ def studentDashboard(request):
             student_updates[task.id] = existing_update  
 
 
-    availableJobs = Job.objects.filter( status="open",major=student.major).order_by("-id")[:3]
+    availableJobs = Job.objects.filter( status="open",major=student.major,   deadline__gte=timezone.now().date()
+    ).order_by("-id")[:3]
     for job in availableJobs:
         job.already_applied = Application.objects.filter(
             student=student, job=job
@@ -233,7 +233,7 @@ def studentDashboard(request):
         "availableJobs": availableJobs,
         "myApps": myApps,
         "appliedCount": myApps.count(),
-        "availableCount": Job.objects.filter(status="open", major=student.major).count(),
+        "availableCount": Job.objects.filter(status="open", major=student.major,  deadline__gte=timezone.now().date()).count(),
         "projects": projects,
         "projectCount": projects.count(),
         "resume": resume,
@@ -283,47 +283,88 @@ def companyDashboard(request):
     }
     return render(request, "dashboards/company.html", context)
 
+def studentList(request):
+    students = Student.objects.all()
+    return render(request, "student/students_list.html", {"students": students})
+
+
+# List Companies
+def companyList(request):
+    companies = Company.objects.all()
+    return render(request, "company/companies_list.html", {"companies": companies})
 
 @login_required
 def adminDashboard(request):
     students = Student.objects.all()
     companies = Company.objects.all()
-    return render(request, "dashboards/admin.html", {"students": students, "companies": companies})
+    jobs = Job.objects.all()
+    applications = Application.objects.all()
+
+    context = {
+        "students": students,
+        "companies": companies,
+        "jobs": jobs,
+        "applications": applications,
+        "total_students": students.count(),
+        "total_companies": companies.count(),
+        "total_jobs": jobs.count(),
+        "total_applications": applications.count(),}
+    return render(request, "dashboards/admin.html", context)
 
 
 # ---------------- JOBS ----------------
-from core.models import StudentResume
-
 
 @login_required
 def jobList(request):
-    student = get_object_or_404(Student, user=request.user)
+    user = request.user
     today = timezone.now().date()
 
-    # First, get the jobs
-    jobs = Job.objects.filter(status="open",major=student.major,deadline__gte=today).order_by("-id")
+    if user.role == "student":
+        student = get_object_or_404(Student, user=user)
 
-    # Exclude jobs already applied to
-    jobs = jobs.exclude(application__student=student)
+        jobs = Job.objects.filter(
+            status="open",
+            major=student.major,
+            deadline__gte=today
+        ).order_by("-id")
 
-    # Search filter
-    q = request.GET.get("q")
-    if q:
-        jobs = jobs.filter(
-            Q(title__icontains=q) |
-            Q(company__companyName__icontains=q) |
-            Q(description__icontains=q) |
-            Q(location__icontains=q) |
-            Q(type__icontains=q)
-        )
+        # Apply search filter if present
+        q = request.GET.get("q")
+        if q:
+            jobs = jobs.filter(
+                Q(title__icontains=q) |
+                Q(company__companyName__icontains=q) |
+                Q(description__icontains=q) |
+                Q(location__icontains=q) |
+                Q(type__icontains=q)
+            )
 
-    # Check resume existence and completeness
-    resume = StudentResume.objects.filter(student=student).first()
-    has_complete_resume = resume.is_complete if resume else False
 
-    # Mark which jobs have already been applied to (optional, may not be needed after exclude)
-    for job in jobs:
-        job.already_applied = Application.objects.filter(student=student, job=job).exists()
+        # Mark already applied jobs
+        for job in jobs:
+            job.already_applied = Application.objects.filter(student=student, job=job).exists()
+
+        # Get resume info
+        resume = StudentResume.objects.filter(student=student).first()
+        has_complete_resume = resume.is_complete if resume else False
+
+    else:
+        # For company/admin users
+        jobs = Job.objects.filter(status="open", deadline__gte=today).order_by("-id")
+
+        # Apply search filter if present
+        q = request.GET.get("q")
+        if q:
+            jobs = jobs.filter(
+                Q(title__icontains=q) |
+                Q(company__companyName__icontains=q) |
+                Q(description__icontains=q) |
+                Q(location__icontains=q) |
+                Q(type__icontains=q)
+            )
+
+        resume = None
+        has_complete_resume = False
 
     return render(
         request,
@@ -332,9 +373,10 @@ def jobList(request):
             "jobs": jobs,
             "resume": resume,
             "has_complete_resume": has_complete_resume,
-            "now": today
+            "now": today,
         },
     )
+
 
 @user_passes_test(lambda u: u.role == "company")
 def jobCreate(request):
@@ -703,18 +745,26 @@ def taskSubmissions(request, project_id):
     })
 
 @login_required
-def studentProfileUpload(request):
-    student = get_object_or_404(Student, user=request.user)
-
+def profileUpload(request):
     if request.method == "POST":
-        form = ProfilePictureForm(request.POST, request.FILES, instance=student)
-        if form.is_valid():
-            form.save()
-            return redirect("studentSettings")
-    else:
-        form = ProfilePictureForm(instance=student)
+        print(request.FILES)  # see what is uploaded
+        file = request.FILES.get("profilePicture")
+        if file:
+            if hasattr(request.user, "student"):
+                request.user.student.profilePicture = file
+                request.user.student.save()
+            elif hasattr(request.user, "company"):
+                request.user.company.companyLogo = file
+                request.user.company.save()
+            elif request.user.is_superuser:
+                request.user.profilePicture = file
+                request.user.save()
+            messages.success(request, "Profile picture updated successfully!")
+        else:
+            messages.error(request, "No file selected.")
+        return redirect(request.META.get("HTTP_REFERER", "login"))
+    return redirect(request.META.get("HTTP_REFERER", "login"))
 
-    return render(request, "student/profile_upload.html", {"form": form})
 
 @login_required
 def student_settings(request):
@@ -743,27 +793,6 @@ def student_settings(request):
 
 
 @login_required
-def profileUpload(request):
-    if request.method == "POST" and request.FILES.get("profilePicture"):
-        profile_picture = request.FILES["profilePicture"]
-
-        # Check if user is a student
-        if hasattr(request.user, "student"):
-            request.user.student.profilePicture = profile_picture
-            request.user.student.save()
-
-        # Check if user is a company
-        elif hasattr(request.user, "company"):
-            request.user.company.companyLogo = profile_picture
-            request.user.company.save()
-
-        messages.success(request, "Profile picture updated successfully!")
-        return redirect(request.META.get("HTTP_REFERER", "login"))  # stay on same page
-
-    messages.error(request, "No file selected.")
-    return redirect(request.META.get("HTTP_REFERER", "login"))
-
-@login_required
 def companySettings(request):
     company = request.user.company
     if request.method == "POST":
@@ -777,6 +806,22 @@ def companySettings(request):
 
     return render(request, "company/settings.html", {"form": form})
 
+@login_required
+def adminSettings(request):
+    if not request.user.is_superuser:
+        messages.error(request, "Access denied")
+        return redirect("home")
+
+    if request.method == "POST":
+        form = AdminForm(request.POST, request.FILES, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Admin profile updated successfully.")
+            return redirect("adminSettings")
+    else:
+        form = AdminForm(instance=request.user)
+
+    return render(request, "admin/settings.html", {"form": form})
 
 @login_required
 @user_passes_test(lambda u: u.role == "company")

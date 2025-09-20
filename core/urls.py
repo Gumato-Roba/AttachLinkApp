@@ -16,7 +16,6 @@ urlpatterns = [
     path("register/company/", views.registerCompany, name="registerCompany"),
     path('activate/<int:uid>/<str:token>/', views.activateStudent, name='activate_student'),
     path('activate-company/<uid>/<token>/',views.activateCompany,name='activate_company'),
-    path("student/profile/upload/", views.studentProfileUpload, name="studentProfileUpload"),
     path("student/settings/", views.student_settings, name="studentSettings"),
     path("company/settings/", views.companySettings, name="companySettings"),
     path("profile/upload/", views.profileUpload, name="profileUpload"),
@@ -58,6 +57,8 @@ urlpatterns = [
     path("dashboard/company/", views.companyDashboard, name="companyDashboard"),
     path("dashboard/admin/", views.adminDashboard, name="adminDashboard"),
     path("dashboard/profile/", views.studentProfile, name="studentProfile"),
+    path("students/", views.studentList, name="students_list"),
+    path("companies/", views.companyList, name="companies_list"),
 
     # Jobs
     path("jobs/", views.jobList, name="jobsList"),  

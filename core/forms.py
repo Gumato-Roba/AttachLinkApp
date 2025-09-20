@@ -116,6 +116,19 @@ class CompanyForm(forms.ModelForm):
         }
 
 
+class AdminForm(forms.ModelForm):
+    class Meta:
+        fields = [
+            "email",
+            "fullName",
+        
+            
+        ]
+        widgets = {
+            "email": forms.EmailInput(attrs={"class": "form-control"}),
+            "fullName": forms.URLInput(attrs={"class": "form-control"}),
+        }
+
 
 # ----------------- COMPANY REGISTER -----------------
 User = get_user_model()

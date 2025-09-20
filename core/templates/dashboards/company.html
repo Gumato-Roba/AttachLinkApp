@@ -25,9 +25,9 @@
                     <h3 class="card-title">{{ totalJobs }}</h3>
                     <p class="card-text">Total Jobs Posted</p>
                 </div>
-                <!-- <div class="card-footer bg-transparent">
-                    <a href="{% url 'jobCreate' %}" class="btn btn-sm btn-outline-primary">Post New Job</a>
-                </div> -->
+                <div class="card-footer bg-transparent">
+                    <a href="{% url 'jobList' %}" class="btn btn-sm btn-outline-primary">View Jobs</a>
+                </div>
             </div>
         </div>
         <div class="col-md-4 mb-3">
@@ -63,7 +63,10 @@
     <!-- My Jobs Section -->
     <div class="card mb-5">
         <div class="card-header bg-primary text-white">
+            <div class="d-flex justify-content-between align-items-center w-100">
             <h5 class="mb-0"><i class="fas fa-briefcase me-2"></i>My Job Postings</h5>
+            <a href="{% url 'jobList' %}" class="btn btn-sm btn-light">View All</a>
+            </div>
         </div>
         <div class="card-body">
             {% if myJobs %}
@@ -119,10 +122,13 @@
     <!-- Applications Received Section -->
     <div class="card">
         <div class="card-header bg-primary text-white">
-            <h5 class="mb-0"><i class="fas fa-users me-2"></i>Applications Received</h5>
+            <div class="d-flex justify-content-between align-items-center w-100">
+            <h5 class="mb-0 me-2"><i class="fas fa-users"></i>Applications Received</h5>
+            <a href="{% url 'companyApplications' %}" class="btn btn-sm btn-light">View All</a>
+            </div>
         </div>
         <div class="card-body">
-            {% if applications %}
+            {% if recentApplications %}
                 <div class="table-responsive">
                     <table class="table table-hover">
                         <thead>
@@ -133,10 +139,11 @@
                                 <th>Status</th>
                                 <th>Applied On</th>
                                 <th>Actions</th>
+                            
                             </tr>
                         </thead>
                         <tbody>
-                            {% for app in applications %}
+                            {% for app in recentApplications %}
                             <tr>
                                 <td>{{ app.job.title }}</td>
                                 <td>{{ app.student.fullName }}</td>

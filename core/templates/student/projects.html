@@ -1,10 +1,7 @@
-{% extends "base.html" %}
 {% load static %}
 {% load custom_tags %}
 {% load custom_filters %}
 {% load dict_extras %}  
-
-{% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h5>Welcome, {{ student.fullName }}</h3>
 </div>
@@ -122,4 +119,3 @@
     </div>
   {% endif %}
 </div>
-{% endblock %}

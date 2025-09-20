@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3>Companies List</h3>
+        <a href="{% url 'adminDashboard' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-success">
+                <tr>
+                    <th>Company</th>
+                    <th>Email</th>
+                    <th>Industry</th>
+                    <th>Location</th>
+                    <th>Website</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for company in companies %}
+                <tr>
+                    <td>{{ company.companyName }}</td>
+                    <td>{{ company.companyEmail }}</td>
+                    <td>{{ company.industry }}</td>
+                    <td>{{ company.location }}</td>
+                    <td>
+                        {% if company.website %}
+                        <a href="{{ company.website }}" target="_blank" class="btn btn-sm btn-success">
+                            Visit
+                        </a>
+                        {% else %}
+                        <span class="text-muted">N/A</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted">No companies found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

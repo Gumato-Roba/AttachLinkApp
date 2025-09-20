@@ -81,7 +81,7 @@ urlpatterns = [
 
     # Company projects & tasks
     path("company/projects/", views.companyProjects, name="companyProjects"),
-    path("company/projects/create/<int:application_id>/", views.createProject, name="createProject"),
+    path("company/projects/create//", views.createProject, name="createProject"),
     path("company/projects/<int:project_id>/", views.projectDetail, name="projectDetail"),
     path("company/projects/<int:project_id>/tasks/create/", views.createTask, name="createTask"),
     path("company/projects/<int:project_id>/submissions/", views.taskSubmissions, name="taskSubmissions"),

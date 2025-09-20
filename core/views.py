@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 from django.views.generic import ListView
-from django.core.paginator import Paginator
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.utils import timezone
 from django.http import HttpResponse, FileResponse
 from django.db.models import Q
@@ -566,16 +566,30 @@ def companyProjects(request):
     # Projects for accepted applications
     projects = Project.objects.filter(application__in=accepted_applications).select_related(
         "application", "application__student"
-    )
+    ).order_by("-id")
 
-    # Applications that do not yet have a project
-    apps_without_projects = accepted_applications.exclude(
-        id__in=projects.values_list("application_id", flat=True)
-    )
+    query = request.GET.get("q")
+    if query:
+        projects = projects.filter(
+            Q(title__icontains=query) |
+            Q(description__icontains=query) |
+            Q(application__student__fullName__icontains=query)
+        )
+
+    paginator = Paginator(projects, 3)
+    page_number = request.GET.get('page')
+    try:
+        page_obj = paginator.get_page(page_number)
+    except PageNotAnInteger:
+        page_obj = paginator.get_page(1)
+    except EmptyPage:
+        page_obj = paginator.get_page(paginator.num_pages)
+
 
     return render(request, "company/projects.html", {
-        "projects": projects,
-        "apps_without_projects": apps_without_projects,
+          'projects': page_obj,
+          'accepted_applications': accepted_applications,
+          'query': query
     })
 
 @login_required
@@ -751,12 +765,15 @@ def profileUpload(request):
         file = request.FILES.get("profilePicture")
         if file:
             if hasattr(request.user, "student"):
+                file = request.FILES.get("profilePicture")
                 request.user.student.profilePicture = file
                 request.user.student.save()
             elif hasattr(request.user, "company"):
+                file = request.FILES.get("companyLogo")
                 request.user.company.companyLogo = file
                 request.user.company.save()
             elif request.user.is_superuser:
+                file = request.FILES.get("profilePicture")
                 request.user.profilePicture = file
                 request.user.save()
             messages.success(request, "Profile picture updated successfully!")

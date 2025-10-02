@@ -23,6 +23,15 @@ from django.urls import reverse
 from Attachlinkproject.settings import DEFAULT_FROM_EMAIL
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
+from django.utils.http import urlsafe_base64_decode
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.utils.encoding import force_str
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib.auth import get_user_model
+from django.shortcuts import redirect, render, get_object_or_404
+from django.contrib import messages
+
 
 
 from .forms import (
@@ -78,9 +87,11 @@ def registerStudent(request):
             student.save()
 
             # Generate token
+            uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
             token = default_token_generator.make_token(user)
-            path = reverse('activate_student', kwargs={'uid': user.id, 'token': token})
+            path = reverse('activate_student', kwargs={'uidb64': uidb64, 'token': token})
             activation_link = request.build_absolute_uri(path)
+           
            
             context = {
                 'student': student,
@@ -105,9 +116,14 @@ def registerStudent(request):
 
     return render(request, "auth/register_student.html", {"form": form})
 
-def activateStudent(request, uid, token):
-    user = get_object_or_404(User, id=uid)
-    if default_token_generator.check_token(user, token):
+def activateStudent(request, uidb64, token):
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user is not None and default_token_generator.check_token(user, token):
         user.is_active = True
         user.save()
         messages.success(request, "Your account is activated! You can now log in.")
@@ -116,18 +132,22 @@ def activateStudent(request, uid, token):
         messages.error(request, "Activation link is invalid or expired.")
         return redirect("registerStudent")
     
+
 def registerCompany(request):
     if request.method == "POST":
         form = CompanyRegisterForm(request.POST, request.FILES)  
         if form.is_valid():
             try:
-                company = form.save()
+                company = form.save(commit=False)
                 user = company.user
-                
+                user.is_active = False  # Deactivate until verified
+                user.save()
+                company.save()
 
                 # Generate token + activation link
+                uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
                 token = default_token_generator.make_token(user)
-                path = reverse('activate_company', kwargs={'uid': user.id, 'token': token})
+                path = reverse('activate_company', kwargs={'uidb64': uidb64, 'token': token})
                 activation_link = request.build_absolute_uri(path)
 
                 # Context for email template
@@ -147,7 +167,7 @@ def registerCompany(request):
                 email_message.attach_alternative(html_content, "text/html")
                 email_message.send()
 
-                return render(request,"auth/check_email.html",{"user_obj": company, "user_type": "Company"})
+                return render(request, "auth/check_email.html", {"user_obj": company, "user_type": "Company"})
 
             except Exception as e:
                 messages.error(request, f"An unexpected error occurred: {e}")
@@ -158,9 +178,15 @@ def registerCompany(request):
 
 
 
-def activateCompany(request, uid, token):
-    user = get_object_or_404(User, id=uid)
-    if default_token_generator.check_token(user, token):
+
+def activateCompany(request, uidb64, token):
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user is not None and default_token_generator.check_token(user, token):
         user.is_active = True
         user.save()
         messages.success(request, "Your company account has been activated. You can now log in.")
@@ -168,6 +194,7 @@ def activateCompany(request, uid, token):
     else:
         messages.error(request, "Invalid or expired activation link.")
         return redirect('registerCompany')
+
 
 
 

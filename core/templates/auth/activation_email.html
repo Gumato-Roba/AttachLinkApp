@@ -1,22 +1,41 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <style>
-    body { font-family: Arial, sans-serif; background-color: #f8f9fa; padding: 20px; }
-    .container { background: #fff; max-width: 600px; margin: 20px auto; padding: 20px; border-radius: 8px; border: 1px solid #ddd; }
-    .btn { display: inline-block; background-color: #4a90e2; color: #fff !important; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h2>Hello {{ student.fullName }},</h2>
-    <p>Welcome! Please click the button below to activate your account:</p>
-    <p style="text-align: center;">
-      <a href="{{ activation_link }}" class="btn">Activate Account</a>
-    </p>
-    <p>If you didn’t create an account, you can ignore this email.</p>
-    <p>Thanks,<br>Attachlink Team</p>
+{% extends "base.html" %}
+{% block title %}Activate Your Account{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card shadow-lg p-4 text-center">
+        <div class="card-body">
+          <!-- Optional email icon -->
+          <div class="mb-3">
+            <i class="bi bi-envelope-fill text-primary" style="font-size: 3rem;"></i>
+          </div>
+
+          <h2 class="card-title mb-3 text-primary">Activate Your Account</h2>
+
+          <p class="card-text fs-5">
+            Hi <strong>
+            {% if company %}
+              {{ company.companyName }}
+            {% elif student %}
+              {{ student.fullName }}
+            {% else %}
+              User
+            {% endif %}
+            </strong>,<br>
+            Thank you for registering. Please click the button below to activate your account:
+          </p>
+
+          <a href="{{ activation_link }}" class="btn btn-primary btn-lg mt-3">Activate Account</a>
+
+          <p class="mt-3 fs-6 text-muted">
+            If the button doesn’t work, copy and paste this URL into your browser:<br>
+            <a href="{{ activation_link }}">{{ activation_link }}</a>
+          </p>
+        </div>
+      </div>
+    </div>
   </div>
-</body>
-</html>
+</div>
+{% endblock %}

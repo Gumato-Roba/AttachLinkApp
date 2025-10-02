@@ -37,28 +37,7 @@
         </div>
       </div>
 
-      <!-- Accept / Reject Application -->
-      {% if application.status not in "accepted rejected" %}
-      <div class="card mb-4">
-        <div class="card-header bg-warning text-dark">Application Actions</div>
-        <div class="card-body">
-          <form method="POST">
-            {% csrf_token %}
-            <div class="mb-3">
-              <label for="comments" class="form-label">Comments (optional)</label>
-              <textarea name="comments" id="comments" class="form-control" rows="2">{{ application.comments }}</textarea>
-            </div>
-            <button type="submit" name="status" value="accepted" class="btn btn-success me-2">
-              Accept
-            </button>
-            <button type="submit" name="status" value="rejected" class="btn btn-danger">
-              Reject
-            </button>
-          </form>
-        </div>
-      </div>
-      {% endif %}
-    </div>
+    
 
     <!-- Right: Student Info -->
     <div class="col-md-4">

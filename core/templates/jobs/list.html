@@ -10,18 +10,12 @@
 </div>
 
 <!-- Search Form -->
-<div class="card mb-4 p-3">
-    <form method="GET" action="{% url 'jobList' %}" class="row g-3 align-items-end">
-        <div class="col-md-5">
-            <label for="searchQuery" class="form-label">Search</label>
-            <input type="text" class="form-control" id="searchQuery" name="q" 
-                   placeholder="Job title, company, or keywords" value="{{ request.GET.q }}">
-        </div>
-        <div class="col-md-2">
-            <button type="submit" class="btn btn-primary w-100">Search</button>
-        </div>
-    </form>
-</div>
+<form method="get" class="mb-3">
+    <div class="input-group">
+        <input type="text" name="q" value="{{ query|default:'' }}" class="form-control" placeholder="Search...">
+        <button type="submit" class="btn btn-primary">Search</button>
+    </div>
+</form>
 
 <!-- Jobs Table -->
 <div class="card">
@@ -40,7 +34,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for j in jobs %}
+                    {% for j in page_obj %}
                     <tr>
                         <td><strong>{{ j.title }}</strong></td>
                         <td>{{ j.company.companyName }}</td>
@@ -106,4 +100,23 @@
         </div>
     </div>
 </div>
+
+<!-- Pagination -->
+<nav>
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?q={{ query }}&page={{ page_obj.previous_page_number }}">Previous</a>
+            </li>
+        {% endif %}
+        <li class="page-item disabled">
+            <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        </li>
+        {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?q={{ query }}&page={{ page_obj.next_page_number }}">Next</a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
 {% endblock %}

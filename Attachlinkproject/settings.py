@@ -51,9 +51,8 @@ INSTALLED_APPS = [
     'attachlinkapp',
     'core',
     'widget_tweaks',
-
-
 ]
+
 # The login redirect URL after successful login
 LOGIN_REDIRECT_URL = 'dashboard_redirect'
 LOGIN_URL = "login"
@@ -101,10 +100,10 @@ WSGI_APPLICATION = 'Attachlinkproject.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'attachlinkdb',
+        'NAME': 'attachlink',
         'USER': 'attachlinkuser',
         'PASSWORD': 'defaultuser1234',
-        'HOST': '127.0.0.1',  
+        'HOST': '127.0.0.1', 
         'PORT': '5432',
     }
 }
@@ -165,8 +164,5 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'gumatorobba@gmail.com'         
 EMAIL_HOST_PASSWORD = 'ztcb iazg lchb bahn'
 DEFAULT_FROM_EMAIL = 'no-reply@attachlink.com'
-
-
-
 
 

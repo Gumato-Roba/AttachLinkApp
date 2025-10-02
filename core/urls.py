@@ -15,9 +15,10 @@ urlpatterns = [
     path("register/student/", views.registerStudent, name="registerStudent"),
     path("register/company/", views.registerCompany, name="registerCompany"),
     path('activate/<int:uid>/<str:token>/', views.activateStudent, name='activate_student'),
-    path('activate-company/<uid>/<token>/',views.activateCompany,name='activate_company'),
+    path('activate/<int:uid>/<str:token>/',views.activateCompany,name='activate_company'),
     path("student/settings/", views.student_settings, name="studentSettings"),
     path("company/settings/", views.companySettings, name="companySettings"),
+    path("admin/settings/", views.adminSettings, name="adminSettings"),
     path("profile/upload/", views.profileUpload, name="profileUpload"),
 
 
@@ -56,7 +57,6 @@ urlpatterns = [
     path("dashboard/student/", views.studentDashboard, name="studentDashboard"),
     path("dashboard/company/", views.companyDashboard, name="companyDashboard"),
     path("dashboard/admin/", views.adminDashboard, name="adminDashboard"),
-    path("dashboard/profile/", views.studentProfile, name="studentProfile"),
     path("students/", views.studentList, name="students_list"),
     path("companies/", views.companyList, name="companies_list"),
 
@@ -81,14 +81,17 @@ urlpatterns = [
 
     # Company projects & tasks
     path("company/projects/", views.companyProjects, name="companyProjects"),
-    path("company/projects/create//", views.createProject, name="createProject"),
+    path('company/applications/pending/', views.companyPendingApplications, name='companyPendingApplications'),
+    path("company/projects/create/", views.createProject, name="createProject"),
     path("company/projects/<int:project_id>/", views.projectDetail, name="projectDetail"),
     path("company/projects/<int:project_id>/tasks/create/", views.createTask, name="createTask"),
     path("company/projects/<int:project_id>/submissions/", views.taskSubmissions, name="taskSubmissions"),
 
 
 
-    # Student projects & tasks
+    # Student application,projects & tasks
+    path("student/applications/pending/", views.studentPendingApplications, name='studentPendingApplications'),
+    path("student/applications/", views.studentApplications, name="studentApplications"),
     path("student/projects/", views.studentProjects, name="studentProjects"),
     path("student/task/<int:task_id>/submit/", views.submitTaskUpdate, name="submitTaskUpdate"),
     path("student/tasks/<int:task_id>/update/", views.submitTaskUpdate, name="submitTaskUpdate"),

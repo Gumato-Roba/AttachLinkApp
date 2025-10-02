@@ -8,6 +8,12 @@
         </a>
     </div>
 
+    <!-- 🔍 Search bar -->
+    <form method="get" class="mb-3 d-flex">
+        <input type="text" name="q" value="{{ request.GET.q }}" class="form-control me-2" placeholder="Search companies...">
+        <button type="submit" class="btn btn-success">Search</button>
+    </form>
+
     <div class="table-responsive">
         <table class="table table-hover align-middle">
             <thead class="table-success">
@@ -23,7 +29,7 @@
                 {% for company in companies %}
                 <tr>
                     <td>{{ company.companyName }}</td>
-                    <td>{{ company.companyEmail }}</td>
+                    <td>{{ company.email }}</td>
                     <td>{{ company.industry }}</td>
                     <td>{{ company.location }}</td>
                     <td>
@@ -44,5 +50,42 @@
             </tbody>
         </table>
     </div>
+
+    <!-- 📄 Pagination controls -->
+    {% if companies.has_other_pages %}
+    <nav>
+        <ul class="pagination justify-content-center">
+            {% if companies.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?q={{ request.GET.q }}&page=1">&laquo; First</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?q={{ request.GET.q }}&page={{ companies.previous_page_number }}">Previous</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">&laquo; First</span></li>
+            <li class="page-item disabled"><span class="page-link">Previous</span></li>
+            {% endif %}
+
+            <li class="page-item disabled">
+                <span class="page-link">
+                    Page {{ companies.number }} of {{ companies.paginator.num_pages }}
+                </span>
+            </li>
+
+            {% if companies.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?q={{ request.GET.q }}&page={{ companies.next_page_number }}">Next</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?q={{ request.GET.q }}&page={{ companies.paginator.num_pages }}">Last &raquo;</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">Next</span></li>
+            <li class="page-item disabled"><span class="page-link">Last &raquo;</span></li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
 </div>
 {% endblock %}

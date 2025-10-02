@@ -19,7 +19,7 @@
     <h2 class="fw-bold"><i class="bi bi-kanban"></i> Manage Projects</h2>
   </div>
 
-<!-- Create Project Section -->
+  <!-- Create Project Section -->
   <div class="mb-4 d-flex justify-content-end">
     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createProjectModal">
       <i class="fas fa-plus"></i> Create Project
@@ -27,11 +27,11 @@
   </div>
 
   <form method="get" class="mb-3">
-  <div class="input-group">
-    <input type="text" name="q" class="form-control" placeholder="Search..." value="{{ query|default:'' }}">
-    <button class="btn btn-primary" type="submit">Search</button>
-  </div>
-</form>
+    <div class="input-group">
+      <input type="text" name="q" value="{{ query|default:'' }}" class="form-control" placeholder="Search...">
+      <button type="submit" class="btn btn-primary">Search</button>
+    </div>
+  </form>
 
   <!-- Create Project Modal -->
   <div class="modal fade" id="createProjectModal" tabindex="-1" aria-labelledby="createProjectModalLabel" aria-hidden="true">
@@ -45,12 +45,12 @@
           </div>
           <div class="modal-body">
 
-            <!-- Dropdown with all accepted students -->
+            <!-- Multi-select Dropdown for accepted students -->
             <div class="mb-3">
-              <label for="studentSelect" class="form-label">Select Student</label>
+              <label for="studentSelect" class="form-label">Select Student(s)</label>
               <select name="application_id" id="studentSelect" class="form-select" multiple required>
-                <option value="" disabled selected>-- Choose a Student --</option>
-                {% for app in accepted_applications %}
+                  <option value="" disabled>-- Choose Students --</option>
+                  {% for app in accepted_applications %}
                   <option value="{{ app.id }}">{{ app.student.fullName }} - {{ app.job.title }}</option>
                 {% endfor %}
               </select>
@@ -60,10 +60,12 @@
               <label>Project Title</label>
               <input type="text" name="title" class="form-control" required>
             </div>
+
             <div class="mb-3">
               <label>Project Description</label>
               <textarea name="description" class="form-control" rows="3"></textarea>
             </div>
+
             <div class="row">
               <div class="col-md-6 mb-3">
                 <label>Planned Start Date</label>

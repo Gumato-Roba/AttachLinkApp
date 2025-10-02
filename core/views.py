@@ -1,4 +1,7 @@
+from email.message import EmailMessage
+from itertools import count
 import os
+from django.db import IntegrityError
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
@@ -9,7 +12,7 @@ from django.views.generic import ListView
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.utils import timezone
 from django.http import HttpResponse, FileResponse
-from django.db.models import Q
+from django.db.models import Q, Count, Avg
 from reportlab.lib.pagesizes import A4
 from io import BytesIO
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
@@ -96,9 +99,7 @@ def registerStudent(request):
             email_message.attach_alternative(html_content, "text/html")
             email_message.send()
 
-            # Success message and redirect
-            messages.success(request, "Registration successful! Please check your email to activate your account.")
-            return redirect("login")
+            return render(request, "auth/check_email.html", {"user_obj": student, "user_type": "Student"})
     else:
         form = StudentRegisterForm()
 
@@ -114,57 +115,48 @@ def activateStudent(request, uid, token):
     else:
         messages.error(request, "Activation link is invalid or expired.")
         return redirect("registerStudent")
-
-
-
-
+    
 def registerCompany(request):
     if request.method == "POST":
-        form = CompanyRegisterForm(request.POST, request.FILES)  # include files if needed
+        form = CompanyRegisterForm(request.POST, request.FILES)  
         if form.is_valid():
-            email = form.cleaned_data['companyEmail']   # or 'email' depending on your form field
-            password = form.cleaned_data['password1']   # if you have password fields in the form
+            try:
+                company = form.save()
+                user = company.user
+                
 
-            # Check if email already used
-            if User.objects.filter(email=email).exists():
-                messages.error(request, "Email is already registered. Try logging in.")
-                return redirect("register_company")
+                # Generate token + activation link
+                token = default_token_generator.make_token(user)
+                path = reverse('activate_company', kwargs={'uid': user.id, 'token': token})
+                activation_link = request.build_absolute_uri(path)
 
-            # Create inactive user
-            user = User.objects.create_user(
-                email=email,
-                password=password,
-                is_active=False  # inactive until verified
-            )
+                # Context for email template
+                context = {
+                    'company': company,
+                    'activation_link': activation_link,
+                }
+                html_content = render_to_string('auth/activation_email.html', context)
 
-            # Link Company model to this user
-            company = form.save(commit=False)
-            company.user = user
-            company.save()
+                # Send HTML email
+                email_message = EmailMultiAlternatives(
+                    subject="Activate Your Company Account",
+                    body="",  
+                    from_email=DEFAULT_FROM_EMAIL,
+                    to=[user.email]
+                )
+                email_message.attach_alternative(html_content, "text/html")
+                email_message.send()
 
-            # Generate token + activation link
-            token = default_token_generator.make_token(user)
-            path = reverse('activate_company', kwargs={'uid': user.id, 'token': token})
-            activation_link = request.build_absolute_uri(path)
+                return render(request,"auth/check_email.html",{"user_obj": company, "user_type": "Company"})
 
-            # Send activation email
-            send_mail(
-                'Activate Your Company Account',
-                f'Hi {company.companyName}, click the link to activate your account:\n{activation_link}',
-                DEFAULT_FROM_EMAIL,
-                [user.email],
-                fail_silently=False,
-            )
-
-            messages.success(
-                request,
-                "Company account created! Please check your email to activate your account."
-            )
-            return redirect("login")
+            except Exception as e:
+                messages.error(request, f"An unexpected error occurred: {e}")
     else:
         form = CompanyRegisterForm()
 
     return render(request, "auth/register_company.html", {"form": form})
+
+
 
 def activateCompany(request, uid, token):
     user = get_object_or_404(User, id=uid)
@@ -177,11 +169,6 @@ def activateCompany(request, uid, token):
         messages.error(request, "Invalid or expired activation link.")
         return redirect('registerCompany')
 
-
-
-@login_required
-def studentProfile(request):
-    return render(request, "dashboards/profile.html")
 
 
 # ---------------- DASHBOARD REDIRECT ----------------
@@ -200,7 +187,15 @@ def studentDashboard(request):
     student = get_object_or_404(Student, user=request.user)
     resume = StudentResume.objects.filter(student=student).first()
     has_complete_resume = resume.is_complete if resume else False
+
     projects = Project.objects.filter(application__student=student).prefetch_related("task_set")
+
+    total_projects = projects.count()
+    completed_projects = projects.filter(status="completed").count()
+    ongoing_projects = projects.filter(status="active").count()
+
+    avg_progress = projects.aggregate(avg=Avg("progress"))["avg"] or 0
+    avg_progress = round(avg_progress, 2)
 
     student_updates = {}
     updates = TaskUpdate.objects.filter(student=student).select_related("task")
@@ -242,6 +237,10 @@ def studentDashboard(request):
         "hasAccepted": hasAccepted,
         "student_updates": student_updates,
         "task_forms": task_forms,
+        "total_projects": total_projects,
+        "completed_projects": completed_projects,
+        "ongoing_projects": ongoing_projects,
+        "avg_progress": avg_progress,
     }
     return render(request, "dashboards/student.html", context)
 
@@ -258,7 +257,6 @@ def companyDashboard(request):
     pendingApplications = applications.filter(status="pending").count()
     acceptedApplications = applications.filter(status="accepted").count()
     company_projects = Project.objects.filter(application__job__company=company)
-    pending_count = Application.objects.filter(job__company=company, status="pending").count()
     recentApplications = applications.order_by("-appliedAt")[:3]
 
     submitted_tasks = TaskUpdate.objects.filter(
@@ -266,8 +264,8 @@ def companyDashboard(request):
         status="submitted"
     ).select_related("task", "student")
 
-    for job in myJobs:
-        job.applicationsCount = Application.objects.filter(job=job).count()
+    myJobs = myJobs.annotate(applicationsCount=Count('application'))
+
 
     context = {
         "company": company,
@@ -276,22 +274,110 @@ def companyDashboard(request):
         "recentApplications": recentApplications,
         "totalJobs": totalJobs,
         "totalApplications": totalApplications,
-        "pendingApplications": pending_count,
+        "pendingApplications": pendingApplications,
         "acceptedApplications": acceptedApplications,
         "submitted_tasks": submitted_tasks,
         "company_projects": company_projects,
+        "pendingCount": pendingApplications,
+
     }
     return render(request, "dashboards/company.html", context)
 
 def studentList(request):
+    query = request.GET.get("q")
     students = Student.objects.all()
-    return render(request, "student/students_list.html", {"students": students})
+
+    if query and query != "None":
+        students = students.filter(
+        Q(fullName__icontains=query) |
+        Q(studentId__icontains=query) |
+        Q(university__icontains=query) |
+        Q(major__icontains=query)
+
+        )
+
+    paginator = Paginator(students, 6) 
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, "student/students_list.html", {"students": students, "page_obj": page_obj, "query": query})
 
 
 # List Companies
 def companyList(request):
+    query = request.GET.get("q")
     companies = Company.objects.all()
-    return render(request, "company/companies_list.html", {"companies": companies})
+
+    if query and query != "None":
+        companies = companies.filter(
+        Q(companyName__icontains=query) |
+        Q(companyEmail__icontains=query) |
+        Q(location__icontains=query) |
+        Q(industry__icontains=query)
+
+        )
+
+    paginator = Paginator(companies, 6) 
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+    return render(request, "company/companies_list.html", {"companies": companies, "page_obj": page_obj, "query": query})
+
+@login_required
+def companyPendingApplications(request):
+    company = get_object_or_404(Company, user=request.user)
+    
+    # Get all pending applications for this company
+    applications = Application.objects.filter(job__company=company,status='pending').select_related('job', 'student')
+
+    query = request.GET.get('q')  
+    if query:
+        applications = applications.filter(
+            Q(job__company__companyName__icontains=query) |
+            Q(job__company__CompanyEmail__icontains=query) 
+        )
+
+    # Pagination: 10 applications per page
+    paginator = Paginator(applications, 6)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'page_obj': page_obj,
+        'query': query,
+    }
+    return render(request, 'company/pending_list.html', context)
+
+
+@login_required
+def studentPendingApplications(request):
+    student = get_object_or_404(Student, user=request.user)
+    
+    # Get all pending applications for this company
+    applications = Application.objects.filter(
+        student=student,
+        status='pending'
+    ).select_related('job', 'job__company')
+
+    # Search functionality
+    query = request.GET.get('q')  
+    if query:
+        applications = applications.filter(
+            Q(fullName__icontains=query) |
+            Q(email__icontains=query) |
+            Q(job__title__icontains=query)
+        )
+
+    # Pagination: 10 applications per page
+    paginator = Paginator(applications, 6)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'page_obj': page_obj,
+        'query': query,
+    }
+    return render(request, 'student/pending_list.html', context)
+
 
 @login_required
 def adminDashboard(request):
@@ -366,14 +452,20 @@ def jobList(request):
         resume = None
         has_complete_resume = False
 
+    paginator = Paginator(jobs, 6)  # Show 10 jobs per page
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
     return render(
         request,
         "jobs/list.html",
         {
+            "page_obj": page_obj,
             "jobs": jobs,
             "resume": resume,
             "has_complete_resume": has_complete_resume,
             "now": today,
+            "query": q,
         },
     )
 
@@ -521,6 +613,24 @@ def companyApplications(request):
     company = get_object_or_404(Company, user=request.user)
     jobs = Job.objects.filter(company=company)
     applications = Application.objects.filter(job__in=jobs).select_related("student", "job")
+
+    q = request.GET.get("q")
+    if q:
+        applications = applications.filter(
+            Q(student__fullName__icontains=q) |
+            Q(student__user__email__icontains=q) |
+            Q(job__title__icontains=q) |
+            Q(status__icontains=q)
+        )
+
+    paginator = Paginator(applications.order_by("-appliedAt"), 10)  # 10 per page
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        "applications": page_obj,  # Paginated queryset
+        "query": q,
+    }
     return render(request, "company/application.html", {"applications": applications})
 
 
@@ -594,32 +704,42 @@ def companyProjects(request):
 
 @login_required
 @user_passes_test(lambda u: u.role == "company")
-def createProject(request, application_id):
-    application = get_object_or_404(
-        Application,
-        id=application_id,
-        job__company__user=request.user,
-        status="accepted"
-    )
+def createProject(request):
     if request.method == "POST":
         title = request.POST.get("title")
         description = request.POST.get("description")
         planned_start_date = request.POST.get("plannedStartDate")
         planned_end_date = request.POST.get("plannedEndDate")
+        application_ids = request.POST.getlist("application_id")  # gets multiple selected students
 
-        if title and description:
-            Project.objects.create(
-                application=application,
-                title=title,
-                description=description,
-                plannedStartDate=planned_start_date,
-                plannedEndDate=planned_end_date,
-                actualStartDate=timezone.now().date(),
-                status="active"
-            )
-            messages.success(request, "Project created successfully!")
+        if title and description and application_ids:
+            for app_id in application_ids:
+                application = get_object_or_404(
+                    Application,
+                    id=app_id,
+                    job__company__user=request.user,
+                    status="accepted"
+                )
+                Project.objects.create(
+                    application=application,
+                    title=title,
+                    description=description,
+                    plannedStartDate=planned_start_date,
+                    plannedEndDate=planned_end_date,
+                    actualStartDate=timezone.now().date(),
+                    status="active"
+                )
+            messages.success(request, "Project(s) created successfully!")
             return redirect("companyProjects")
-    return render(request, "company/create_project.html", {"application": application})
+        else:
+            messages.error(request, "Please fill all required fields and select at least one student.")
+
+    accepted_applications = Application.objects.filter(
+        job__company__user=request.user,
+        status="accepted"
+    )
+    return render(request, "company/create_project.html", {"accepted_applications": accepted_applications})
+
 
 
 @login_required
@@ -665,25 +785,60 @@ def createTask(request, project_id):
             return redirect("projectDetail", project_id=project.id)
     return render(request, "company/create_task.html", {"project": project})
 
-
 @login_required
 def studentProjects(request):
     student = get_object_or_404(Student, user=request.user)
-    projects = Project.objects.filter(application__student=student).prefetch_related("task_set")
-    updates = TaskUpdate.objects.filter(student=student)  
+
+    # Get all projects + tasks in a single query
+    projects = (
+        Project.objects
+        .filter(application__student=student)
+        .prefetch_related("task_set")  
+    )
+
+    # Get all updates for this student in one query
+    updates = TaskUpdate.objects.filter(student=student).select_related("task")
     student_updates = {update.task_id: update for update in updates}
 
-    task_forms = {}
+    # Build task forms without re-querying for each task
+    task_forms = {
+        task.id: TaskUpdateForm(instance=student_updates.get(task.id))
+        for project in projects
+        for task in project.task_set.all()
+    }
+
+    
+    total_projects = projects.count()
+    completed_projects = projects.filter(status="completed").count()
+    ongoing_projects = projects.filter(status="ongoing").count()
+
+    # Calculate progress per project
     for project in projects:
-        for task in project.task_set.all():
-            existing_update = TaskUpdate.objects.filter(task=task, student=student).first()
-            task_forms[task.id] = TaskUpdateForm(instance=existing_update)
+        tasks = project.task_set.all()
+        if tasks.exists():
+            task_progress = [
+                student_updates[task.id].progressPercent
+                for task in tasks
+                if task.id in student_updates and student_updates[task.id].progressPercent is not None
+            ]
+            project.progress = round(sum(task_progress) / len(task_progress)) if task_progress else 0
+        else:
+            project.progress = 0
+
+    # Average progress across projects
+    avg_progress = round(
+        sum(p.progress for p in projects) / total_projects
+    ) if total_projects > 0 else 0
+
     return render(request, "student/projects.html", {
         "student": student,
         "projects": projects,
         "task_forms": task_forms,
-        "student_updates": student_updates
-
+        "student_updates": student_updates,
+        "total_projects": total_projects,
+        "completed_projects": completed_projects,
+        "ongoing_projects": ongoing_projects,
+        "avg_progress": avg_progress,
     })
 
 
@@ -851,3 +1006,29 @@ def updateApplicationStatus(request, application_id):
             application.status = status
             application.save()
     return redirect("companyApplications") 
+
+@login_required
+def studentApplications(request):
+    student = get_object_or_404(Student, user=request.user)
+    query = request.GET.get("q", "")
+
+    # Filter by search term
+    myApps = Application.objects.filter(student=student).select_related("job", "student", "job__company").order_by("-id")
+    if query:
+        myApps = myApps.filter(
+            Q(job__title__icontains=query) |
+            Q(job__company__companyName__icontains=query) |
+            Q(status__icontains=query)
+        )
+
+    # Add pagination
+    paginator = Paginator(myApps, 10)  # 10 applications per page
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        "student": student,
+        "page_obj": page_obj,
+        "query": query,
+    }
+    return render(request, "student/my_applications.html", context)

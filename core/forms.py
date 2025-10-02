@@ -98,7 +98,6 @@ class CompanyForm(forms.ModelForm):
             "companyName",
             "contactPerson",
             "contactNumber",
-            "companyEmail",
             "website",
             "industry",
             "location",
@@ -142,7 +141,7 @@ class CompanyRegisterForm(forms.ModelForm):
         model = Company
         fields = [
             "companyName", "contactPerson", "contactNumber",
-            "companyEmail", "website", "industry", "location", "description"
+            "website", "industry", "location", "description"
         ]
 
     def clean(self):
@@ -150,28 +149,30 @@ class CompanyRegisterForm(forms.ModelForm):
         pwd1 = cleaned.get("password1")
         pwd2 = cleaned.get("password2")
 
-        if pwd1 != pwd2:
+        if pwd1 and pwd2 and pwd1 != pwd2:
             raise forms.ValidationError("Passwords do not match")
-
-        email = cleaned.get("email")
-        if User.objects.filter(email=email).exists():
-            raise forms.ValidationError("Email already exists. Please use a different one.")
 
         return cleaned
 
     def save(self, commit=True):
-        # Create the User first
         email = self.cleaned_data["email"]
         password = self.cleaned_data["password1"]
-        user = User.objects.create_user(email=email, password=password, role="company")
 
-        # Create and link the Company
+        user = User.objects.create_user(
+            email=email,
+            password=password,
+            role="company",
+            is_active=False 
+        )
+
+        # Link Company to User
         company = super().save(commit=False)
         company.user = user
         if commit:
             company.save()
 
         return company
+
 
 
 # ----------------- JOB FORM  (for the company to post)-----------------

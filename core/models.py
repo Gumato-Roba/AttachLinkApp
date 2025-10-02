@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator,MaxValueValidator
 
 
 # ----------------- USER (login table) -----------------
@@ -102,7 +102,6 @@ class Company(models.Model):
     companyName = models.CharField(max_length=150, null=True, blank=True,db_column="companyName")
     contactPerson = models.CharField(max_length=150, null=True, blank=True, db_column="contactPerson")
     contactNumber = models.CharField(max_length=20, null=True, blank=True, db_column="contactNumber")
-    companyEmail = models.EmailField(null=True, blank=True, db_column="companyEmail")
     website = models.URLField(null=True, blank=True, db_column="website")
     industry = models.CharField(max_length=150, null=True, blank=True, db_column="industry")
     location = models.CharField(max_length=150, null=True, blank=True,  db_column="location")
@@ -239,6 +238,7 @@ class Project(models.Model):
     actualEndDate = models.DateField(null=True, blank=True, db_column="actualEndDate")
     status = models.CharField(max_length=20, default="active", db_column="status")
     comments = models.TextField(null=True, blank=True, db_column="comments")
+    progress = models.PositiveIntegerField(default=0,validators=[MinValueValidator(0), MaxValueValidator(100)],help_text="Progress percentage (0 to 100)")
 
     class Meta:
         db_table = "projects"
